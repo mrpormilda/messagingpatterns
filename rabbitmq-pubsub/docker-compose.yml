@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  publisher:
+    build:
+      context: ./publisher
+    depends_on:
+      - rabbitmq
+    ports:
+      - "8000:8000"
+
+  consumer1:
+    build:
+      context: ./consumer1
+    depends_on:
+      - rabbitmq
+
+  consumer2:
+    build:
+      context: ./consumer2
+    depends_on:
+      - rabbitmq

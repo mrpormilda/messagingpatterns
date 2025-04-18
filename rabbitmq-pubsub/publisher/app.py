@@ -1,23 +1,15 @@
-import pika
-import time
+from fastapi import FastAPI
+from pydantic import BaseModel
+from rabbitmq import publish_message
 
-time.sleep(5)
+app = FastAPI()
 
-connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq'))
-channel = connection.channel()
+class PublishRequest(BaseModel):
+    routing_key: str
+    message: str
 
-# Declare a topic exchange
-channel.exchange_declare(exchange='logs_topic', exchange_type='topic')
+@app.post("/publish")
+def publish(req: PublishRequest):
+    publish_message(req.routing_key, req.message)
+    return {"status": "Message published", "routing_key": req.routing_key, "message": req.message}
 
-routing_keys = ['info.weather', 'warn.system', 'error.security']
-
-for key in routing_keys:
-    message = f"Message with key '{key}'"
-    channel.basic_publish(
-        exchange='logs_topic',
-        routing_key=key,
-        body=message
-    )
-    print(f" [x] Sent {message}")
-
-connection.close()
